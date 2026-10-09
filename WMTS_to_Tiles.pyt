@@ -172,7 +172,7 @@ class WMTS_to_MBTiles(object):
         p_crop.description = ("Crop Metadata Extent to Input Area:\nIf checked, the MBTiles "
                                "'bounds' metadata field is set to the tight bounding box of your "
                                "Extent Feature Class (in WGS84 lon/lat, as the MBTiles spec "
-                               "requires). If unchecked (default), no 'bounds' field is written, "
+                               "requires). Checked by default. If unchecked, no 'bounds' field is written, "
                                "matching the tool's previous behaviour.\nNote: this only affects "
                                "descriptive metadata some viewers use for 'zoom to layer'/panning "
                                "limits - it does NOT crop or renumber the actual tiles.")
@@ -422,6 +422,9 @@ class WMTS_to_MBTiles(object):
         arcpy.AddMessage(f"Total tiles to write into MBTiles: {total_tiles}")
         arcpy.SetProgressor("step", "Writing MBTiles", 0, total_tiles, 1)
 
+        if os.path.exists(output_mbtiles):
+            os.remove(output_mbtiles)
+
         conn = sqlite3.connect(output_mbtiles)
         cur = conn.cursor()
         cur.execute("CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB)")
@@ -472,6 +475,7 @@ class WMTS_to_MBTiles(object):
         conn.close()
         arcpy.ResetProgressor()
         arcpy.AddMessage("WMTS to MBTiles completed.")
+        arcpy.AddMessage(f"Downloaded tiles were left in the temporary folder: {xyz_folder}")
 
 
 # ============================================================================
@@ -571,8 +575,8 @@ class WMTS_to_GeoPackage(object):
         p_crop.description = ("Crop Metadata Extent to Input Area:\nIf checked, the "
                                "gpkg_contents bounding box (used by QGIS/ArcGIS for 'zoom to "
                                "layer' and shown as the layer's extent) is set to the tight "
-                               "bounding box of your Extent Feature Class. If unchecked "
-                               "(default), it is set to the full world Web Mercator extent, "
+                               "bounding box of your Extent Feature Class. Checked by default. "
+                               "If unchecked, it is set to the full world Web Mercator extent, "
                                "matching the tool's previous behaviour.\nNote: this only affects "
                                "descriptive metadata. The gpkg_tile_matrix_set table (which "
                                "controls where tiles are actually positioned) always uses the "
@@ -1006,3 +1010,4 @@ class WMTS_to_GeoPackage(object):
         conn.close()
         arcpy.ResetProgressor()
         arcpy.AddMessage("WMTS to GeoPackage completed.")
+        arcpy.AddMessage(f"Downloaded tiles were left in the temporary folder: {xyz_folder}")
